@@ -11,8 +11,12 @@
 
 using namespace std;
 
-runtime_error err_out_of_bound(size_t dim, size_t max, size_t idx);
 vector<size_t> calculate_strides(vector<size_t> const &shape);
+
 autodiff::Tensor operation(autodiff::Tensor const &a,
                            autodiff::Tensor const &b,
                            function<double(double, double)> op);
+
+void throw_rank_mismatch_error(size_t lhs_rank, size_t rhs_rank);
+void throw_concatenation_dim_mismatch_error(size_t dim, size_t lhs_shape, size_t rhs_shape);
+void throw_out_of_bound_error(size_t dim, size_t max, size_t idx);

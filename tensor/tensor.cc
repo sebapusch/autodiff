@@ -1,8 +1,34 @@
 #include "tensor.ih"
-#include <iomanip>
 
 namespace autodiff
 {
+    namespace
+    {
+        void throw_out_of_bound_error(size_t dim, size_t max, size_t idx)
+        {
+            string error_msg = "Index out of bounds on dimension "
+                + to_string(dim) + ":"
+                + to_string(max) + ", "
+                + to_string(idx) + " received.";
+
+            throw runtime_error(error_msg);
+        }
+
+        vector<size_t> calculate_strides(const vector<size_t> &shape)
+        {
+            size_t size = shape.size();
+            std::vector<size_t> strides(size);
+
+            size_t stride = 1;
+            for (size_t i = size; i-- > 0;) {
+                strides[i] = stride;
+                stride *= shape[i];
+            }
+
+            return strides;
+        }
+    }
+
     Tensor::Tensor(vector<size_t> &&shape, double value)
     :
         d_shape(shape),
@@ -53,7 +79,7 @@ namespace autodiff
             throw runtime_error("Cannot index tensor of shape (0,)");
 
         if (idx >= d_shape[0])
-            throw err_out_of_bound(0, d_shape[0] - 1, idx);
+            throw_out_of_bound_error(0, d_shape[0] - 1, idx);
 
         return Tensor{*this, idx};
     }
@@ -96,6 +122,7 @@ namespace autodiff
         return d_strides;
     }
 
+    // @todo: !!critical!! dont rely on iterators (could be invalidated!!)
     Tensor::DataStartConst Tensor::begin() const
     {
         return DataStartConst(d_start);
@@ -111,48 +138,54 @@ namespace autodiff
         return d_shape.size();
     }
 
+    size_t Tensor::size() const
+    {
+        return accumulate(d_shape.begin(), d_shape.end(), 1, multiplies<size_t>());
+    }
+
     ostream &operator<<(ostream &out, Tensor const &t)
     {
-        //auto const &shape   = t.shape();
-        //auto const &strides = t.strides();
-        auto const &data    = t.data();
+        size_t ix = 0;
+        vector<bool> open(t.rank(), false);
 
-        size_t const size = data.size();
-        size_t const rank = t.rank();
-        for (size_t i = 0; i < size; ++i)
-        {
-            out << data[i] << ", ";
-            for (size_t axis = 0; axis < rank; ++axis)
+        out << "[";
+
+        if (t.rank() > 1) out << "\n";
+
+        for_each(t.begin(), t.end(), [&ix, &t, &out, &open](double val) {
+            size_t rem = ix;
+            string open, close;
+            for (size_t dim = 0; dim < t.rank() - 1; ++dim)
             {
-                //if (i % strides[axis])
-                //    out << "\n";
-            }
-        }
+                size_t dim_inv = t.rank() - 2 - dim;
+                if (ix > 0 and rem % t.strides()[dim_inv] == 0)
+                {
+                    if (dim_inv != t.rank() - 2)
+                        close += string(3 * (dim_inv + 1), ' ');
+                    close += "]\n";
+                }
 
-        out << "\n";
+                if (rem % t.strides()[dim] == 0)
+                {
+                    open += string(3 * (dim + 1), ' ') + "[";
+                    if (dim != t.rank() - 2)
+                        open += "\n";
+                }
+
+                rem %= t.strides()[dim];
+            }
+
+            out << close << open << val;
+            if ((rem + 1) % t.shape()[t.rank() - 1] != 0)
+                out << ", ";
+
+            ++ix;
+        });
+
+        out << "]\n";
+        for (size_t dim = t.rank() - 1; dim-- > 0;)
+            out << string(3 * dim, ' ') + "]\n";
 
         return out;
     }
-}
-
-runtime_error err_out_of_bound(size_t dim, size_t max, size_t idx)
-{
-    return runtime_error("Index out of bounds on dimension "
-        + to_string(dim) + ":"
-        + to_string(max) + ", "
-        + to_string(idx) + " received.");
-}
-
-vector<size_t> calculate_strides(const vector<size_t> &shape)
-{
-    size_t size = shape.size();
-    std::vector<size_t> strides(size);
-
-    size_t stride = 1;
-    for (size_t i = size; i-- > 0;) {
-        strides[i] = stride;
-        stride *= shape[i];
-    }
-
-    return strides;
 }

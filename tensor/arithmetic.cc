@@ -2,49 +2,52 @@
 
 namespace autodiff
 {
-    Tensor operation(Tensor const &lhs,
-                     Tensor const &rhs,
-                     function<double(double, double)> operator_)
+    namespace
     {
-        BroadcastPlan plan = prepare_broadcast(lhs, rhs);
-
-        auto const &lhs_strides = plan.lhs_strides;
-        auto const &rhs_strides = plan.rhs_strides;
-        auto const &res_strides = plan.res_strides;
-
-        auto &res_shape   = plan.res_shape;
-
-        auto const &lhs_data = lhs.data();
-        auto const &rhs_data = rhs.data();
-
-        size_t rank = res_shape.size();
-        size_t res_size = accumulate(res_shape.begin(), res_shape.end(), 1, multiplies<size_t>());
-
-        vector<double> res(res_size);
-
-        size_t i_lhs = 0;
-        size_t i_rhs = 0;
-
-        // @todo: potential opimization: use odometer increment
-        for (size_t i = 0; i < res_size; ++i)
+        Tensor operation(Tensor const &lhs,
+                            Tensor const &rhs,
+                            function<double(double, double)> operator_)
         {
-            i_lhs = 0;
-            i_rhs = 0;
+            BroadcastPlan plan = prepare_broadcast(lhs, rhs);
 
-            size_t j = i;
-            for (size_t axis = 0; axis < rank; ++axis)
+            auto const &lhs_strides = plan.lhs_strides;
+            auto const &rhs_strides = plan.rhs_strides;
+            auto const &res_strides = plan.res_strides;
+
+            auto &res_shape   = plan.res_shape;
+
+            auto const &lhs_data = lhs.data();
+            auto const &rhs_data = rhs.data();
+
+            size_t rank = res_shape.size();
+            size_t res_size = accumulate(res_shape.begin(), res_shape.end(), 1, multiplies<size_t>());
+
+            vector<double> res(res_size);
+
+            size_t i_lhs = 0;
+            size_t i_rhs = 0;
+
+            // @todo: potential opimization: use odometer increment
+            for (size_t i = 0; i < res_size; ++i)
             {
-                size_t coord = j / res_strides[axis];
-                j = j % res_strides[axis];
+                i_lhs = 0;
+                i_rhs = 0;
 
-                i_lhs += coord * lhs_strides[axis];
-                i_rhs += coord * rhs_strides[axis];
+                size_t j = i;
+                for (size_t axis = 0; axis < rank; ++axis)
+                {
+                    size_t coord = j / res_strides[axis];
+                    j = j % res_strides[axis];
+
+                    i_lhs += coord * lhs_strides[axis];
+                    i_rhs += coord * rhs_strides[axis];
+                }
+
+                res[i] = operator_(lhs_data[i_lhs], rhs_data[i_rhs]);
             }
 
-            res[i] = operator_(lhs_data[i_lhs], rhs_data[i_rhs]);
+            return Tensor{move(res_shape), move(res)};
         }
-
-        return Tensor{move(res_shape), move(res)};
     }
 
     // Tensor numeric_operation(Tensor const &lhs,

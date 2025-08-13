@@ -5,6 +5,7 @@
 #include <tuple>
 #include <vector>
 #include <memory>
+#include <optional>
 
 namespace autodiff
 {
@@ -48,6 +49,7 @@ namespace autodiff
         std::vector<size_t> const &strides() const;
 
         size_t rank() const;
+        size_t size() const;
 
         std::vector<double>::const_iterator begin() const;
         std::vector<double>::const_iterator end() const;
@@ -71,6 +73,8 @@ namespace autodiff
 
     Tensor operator/(Tensor const &lhs, Tensor const &rhs);
     Tensor operator/(Tensor const &lhs, double rhs);
+
+    Tensor concatenate(Tensor const &lhs, Tensor const &rhs, std::optional<size_t> axis = 0);
 
     struct BroadcastPlan
     {
