@@ -52,8 +52,8 @@ namespace autodiff
 
         vector<double> res(lhs.size() + rhs.size());
 
-        copy(lhs.begin(), lhs.end(), res.begin());
-        copy(rhs.begin(), rhs.end(), res.begin() + lhs.size());
+        copy(lhs.cbegin(), lhs.cend(), res.begin());
+        copy(rhs.cbegin(), rhs.cend(), res.begin() + lhs.size());
 
         return Tensor{move(res_shape), move(res)};
     }

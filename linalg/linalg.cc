@@ -113,8 +113,8 @@ namespace autodiff
     {
         MatmulBroadcastPlan plan = prepare_matmul_broadcast(lhs, rhs);
 
-        auto const &lhs_data = lhs.data();
-        auto const &rhs_data = rhs.data();
+        auto const &lhs_data = lhs.cbegin();
+        auto const &rhs_data = rhs.cbegin();
 
         auto const &lhs_strides = plan.lhs_strides;
         auto const &rhs_strides = plan.rhs_strides;
@@ -169,7 +169,7 @@ namespace autodiff
 
         }
 
-        return Tensor{move(plan.res_shape), move(res)};
+        return Tensor{std::move(plan.res_shape), std::move(res)};
     }
 
 

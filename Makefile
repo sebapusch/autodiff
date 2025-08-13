@@ -22,7 +22,7 @@ MAIN_SRC := main.cc
 SHARED_SRCS := $(wildcard tensor/*.cc linalg/*.cc)
 
 # Test-specific sources
-TEST_SRCS := tests/test.cc tests/tensor/test_tensor.cc tests/math/test_math.cc tests/linalg/test_linalg.cc
+TEST_SRCS := tests/test.cc tests/tensor/test_tensor.cc tests/arithmetic/test_arithmetic.cc tests/linalg/test_linalg.cc
 
 # --- Object File Definitions ---
 

@@ -12,7 +12,7 @@ TEST(LinearAlgebra, Matmul_Standard2D) {
 
     std::vector<double> expected{0.3267968644395921, -20.265593209735137, -27.891951587095285, 21.293719206720137, -7.703407495358204, -22.40285368474554, -5.034422370097917, 43.024325351045405};
     size_t i = 0;
-    std::for_each(res.data().begin(), res.data().end(), [&i, &expected](double val) {
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
         EXPECT_NEAR(expected[i++], val, kAbsTol);
     });
 }
@@ -27,7 +27,7 @@ TEST(LinearAlgebra, Matmul_VectorMat) {
     std::vector<double> expected{32.78551909082791, -22.283157785900926, 83.45681677057516, 75.90896955033215, -107.45024504007202};
 
     size_t i = 0;
-    std::for_each(res.data().begin(), res.data().end(), [&i, &expected](double val) {
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
         EXPECT_NEAR(expected[i++], val, kAbsTol);
     });
 }
@@ -43,7 +43,7 @@ TEST(LinearAlgebra, Matmul_MatVec) {
     std::vector<double> expected{-11.18849282622573, -19.130122080499845, -113.31097234056159, -27.531178030251375, 31.063257088752948};
 
     size_t i = 0;
-    std::for_each(res.data().begin(), res.data().end(), [&i, &expected](double val) {
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
         EXPECT_NEAR(expected[i++], val, kAbsTol);
     });
 }
@@ -58,7 +58,7 @@ TEST(LinearAlgebra, Matmul_BatchedMatMul) {
 
     std::vector<double> expected{-50.59830081215892, 55.34777928298656, -113.27946676007353, 27.241777252806976, 6.190920373894494, -117.12945456509848, -32.43073957216902, -97.29225297434856, -51.159912515709756, -67.39617756365573, 7.572634373332166, -140.47449227798745, -13.591640751343341, -91.42451765896183, -42.85262044154157, 62.40278881318256, 28.03293826770099, 18.375701877580468, 74.66876878544545, -24.193294657148748, -47.89041666170811, -87.15448410620543, -70.3014945643569, -78.48668744092676, -32.460733276193594, 8.728644807446168, -123.58462383047046, -5.13814886133282, -85.80514126458466, -27.394386452550048};
     size_t i = 0;
-    std::for_each(res.data().begin(), res.data().end(), [&i, &expected](double val) {
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
         EXPECT_NEAR(expected[i++], val, kAbsTol);
     });
 }
@@ -78,7 +78,7 @@ TEST(LinearAlgebra, Matmul_BroadcastedBatched) {
         -121.01441786354695, 94.75833156269456, -111.22100599241455, -7.668415268514081, -17.01584699832104, -122.7100041450547, 66.32003902906764, -51.28441802360061, -128.46781461421102, 1.7535859093176358, -26.037015131454012, -38.676960716434635, -64.65068499744417, -106.72477533341697, 7.194480847122905, 36.176757480820164};
 
     size_t i = 0;
-    std::for_each(res.data().begin(), res.data().end(), [&i, &expected](double val) {
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
         EXPECT_NEAR(expected[i++], val, kAbsTol);
     });
 }

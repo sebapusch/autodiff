@@ -11,26 +11,32 @@ namespace autodiff
 {
     class Tensor
     {
-        using DataPtr = std::shared_ptr<std::vector<double>>;
-        using DataIter = std::vector<double>::iterator;
-        using DataStartConst = std::vector<double>::const_iterator;
-        using Shape = std::vector<std::size_t>;
+        using DataPtr       = std::shared_ptr<std::vector<double>>;
+        using DataIter      = std::vector<double>::iterator;
+        using DataConstIter = std::vector<double>::const_iterator;
 
-        Shape       d_shape;
-        Shape       d_strides;
-        DataPtr     d_data;
-        DataIter    d_start;         // iterator to beginning of data
-        DataIter    d_end;           // iterator to end of data
+        DataPtr             d_data;
+        std::vector<size_t> d_strides;
+        std::vector<size_t> d_shape;
+        size_t              d_offset = 0;
+        size_t              d_length;
 
     public:
-        Tensor(std::vector<std::size_t> &&shape);
-        Tensor(std::vector<std::size_t> &&shape, double value);
-        Tensor(std::vector<std::size_t> &&shape, std::vector<double> &&data);
-        Tensor(Tensor const &t, size_t idx);
+        Tensor(std::vector<size_t> &&shape);
+        Tensor(std::vector<size_t> &&shape, double value);
+        Tensor(std::vector<size_t> &&shape, std::vector<double> &&data);
         ~Tensor();
 
+        std::vector<size_t> const &shape()      const;
+        std::vector<size_t> const &strides()    const;
+
+        size_t rank() const;
+        size_t size() const;
+
+        DataConstIter cbegin()   const;
+        DataConstIter cend()     const;
+
         Tensor operator[](size_t idx);
-        Tensor operator[](size_t start, size_t end);
 
         Tensor &operator+=(Tensor const &rhs);
         Tensor &operator+=(double number);
@@ -44,19 +50,14 @@ namespace autodiff
         Tensor &operator/=(Tensor const &rhs);
         Tensor &operator/=(double number);
 
-        std::vector<double> const &data()  const;
-        std::vector<size_t> const &shape() const;
-        std::vector<size_t> const &strides() const;
-
-        size_t rank() const;
-        size_t size() const;
-
-        std::vector<double>::const_iterator begin() const;
-        std::vector<double>::const_iterator end() const;
-
         operator double();
 
-    protected:
+    private:
+        Tensor(Tensor const &t, size_t idx);
+
+        DataIter begin();
+        DataIter end();
+
         void compatible(Tensor const &other) const;
     };
 

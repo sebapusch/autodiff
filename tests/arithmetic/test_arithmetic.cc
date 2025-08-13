@@ -1,5 +1,7 @@
 #include "../test.h"
 
+constexpr double kAbsTol = 1e-12;
+
 TEST(TensorMath, PlusEqNumCorrect) {
     Tensor t1{{2, 3}, vector<double>{
         1.6, 1.5, 4.5,
@@ -14,7 +16,7 @@ TEST(TensorMath, PlusEqNumCorrect) {
     t1 += 2.0;
 
     size_t i = 0;
-    for_each(t1.begin(), t1.end(), [&i, &result](double val) {
+    for_each(t1.cbegin(), t1.cend(), [&i, &result](double val) {
         EXPECT_DOUBLE_EQ(result[i++], val);
     });
 }
@@ -33,7 +35,7 @@ TEST(TensorMath, TimesEqNumCorrect) {
     t1 *= 2.0;
 
     size_t i = 0;
-    for_each(t1.begin(), t1.end(), [&i, &result](double val) {
+    for_each(t1.cbegin(), t1.cend(), [&i, &result](double val) {
         EXPECT_DOUBLE_EQ(result[i++], val);
     });
 }
@@ -52,7 +54,7 @@ TEST(TensorMath, MinusEqNumCorrect) {
     t1 -= 2.0;
 
     size_t i = 0;
-    for_each(t1.begin(), t1.end(), [&i, &result](double val) {
+    for_each(t1.cbegin(), t1.cend(), [&i, &result](double val) {
         EXPECT_DOUBLE_EQ(result[i++], val);
     });
 }
@@ -64,13 +66,16 @@ TEST(TensorMath, MinusEqNumCorrect) {
 
 TEST(Tensor, TensorAddBroadcast_Case0) {
     Tensor t1{{2, 3}, {-4.923177418679636, 7.430672008809751, 0.4166969155952529, 6.826278544259829, 8.666454870123811, -4.409505578626884}};
-
     Tensor t2{{2, 3}, {-7.044002091203647, -1.7071778552138923, 7.8734805338986575, -4.300944348537447, 3.626712476254353, -4.177562753365218}};
-
+    vector<double> expected{-11.967179509883284, 5.723494153595858, 8.29017744949391, 2.5253341957223814, 12.293167346378164, -8.587068331992104};
     Tensor res = t1 + t2;
 
+
     EXPECT_THAT(res.shape(), ::testing::ContainerEq(std::vector<size_t>{2, 3}));
-    EXPECT_THAT(res.data(), ::testing::ElementsAre(-11.967179509883284, 5.723494153595858, 8.29017744949391, 2.5253341957223814, 12.293167346378164, -8.587068331992104));
+    size_t i = 0;
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
+        EXPECT_NEAR(expected[i++], val, kAbsTol);
+    });
 }
 
 TEST(Tensor, TensorAddBroadcast_Case1) {
@@ -80,8 +85,13 @@ TEST(Tensor, TensorAddBroadcast_Case1) {
 
     Tensor res = t1 + t2;
 
+    vector<double> expected{3.204796923327086, 2.760550108515636, -0.00967069136128007, 8.95442351570558, 10.705665238777474, 4.2889284214821295};
+
     EXPECT_THAT(res.shape(), ::testing::ContainerEq(std::vector<size_t>{2, 3}));
-    EXPECT_THAT(res.data(), ::testing::ElementsAre(3.204796923327086, 2.760550108515636, -0.00967069136128007, 8.95442351570558, 10.705665238777474, 4.2889284214821295));
+    size_t i = 0;
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
+        EXPECT_NEAR(expected[i++], val, kAbsTol);
+    });
 }
 
 TEST(Tensor, TensorAddBroadcast_Case2) {
@@ -91,19 +101,29 @@ TEST(Tensor, TensorAddBroadcast_Case2) {
 
     Tensor res = t1 + t2;
 
+    vector<double> expected{10.574301784612466, 5.493327863362547, 16.792405992671682, 16.22883581066777, 10.297491845813482, 13.668658777065527};
+
     EXPECT_THAT(res.shape(), ::testing::ContainerEq(std::vector<size_t>{2, 3}));
-    EXPECT_THAT(res.data(), ::testing::ElementsAre(10.574301784612466, 5.493327863362547, 16.792405992671682, 16.22883581066777, 10.297491845813482, 13.668658777065527));
+    size_t i = 0;
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
+        EXPECT_NEAR(expected[i++], val, kAbsTol);
+    });
 }
 
 TEST(Tensor, TensorAddBroadcast_Case3) {
-    Tensor t1{{1, 1}, {-2.0610356599271213}};
+    Tensor t1{{1, 1}, -2.0610356599271213};
 
     Tensor t2{{2, 3}, {1.528297380960149, 1.9974714480622762, -1.3246653984252674, -2.3915939902360073, -9.588405528592975, -0.9230748091145919}};
 
     Tensor res = t1 + t2;
 
+    vector<double> expected{-0.5327382789669723, -0.06356421186484518, -3.3857010583523888, -4.452629650163129, -11.649441188520097, -2.9841104690417133};
+
     EXPECT_THAT(res.shape(), ::testing::ContainerEq(std::vector<size_t>{2, 3}));
-    EXPECT_THAT(res.data(), ::testing::ElementsAre(-0.5327382789669723, -0.06356421186484518, -3.3857010583523888, -4.452629650163129, -11.649441188520097, -2.9841104690417133));
+    size_t i = 0;
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
+        EXPECT_NEAR(expected[i++], val, kAbsTol);
+    });
 }
 
 TEST(Tensor, TensorAddBroadcast_Case4) {
@@ -113,8 +133,13 @@ TEST(Tensor, TensorAddBroadcast_Case4) {
 
     Tensor res = t1 + t2;
 
+    vector<double> expected{11.990792559315636, 8.091486738522146, 9.53190323678052, 2.1307988398217077, -4.589617196051013, -0.9579305882902975, -7.682041497116099, 0.39581258899520755, 1.8181667558884573, -5.14385370704098, -7.501938758759923, -10.402147878790881, -0.720726457280275, 13.963508954919828, 9.056268558858902, 12.593383748174489, 3.891229863946453, -0.24362636412316974, -2.4868086647104635, 1.9687920972232504, -6.3373638358834015, -0.8798671485846032, 5.867537990445189, -2.3445885664647577};
+
     EXPECT_THAT(res.shape(), ::testing::ContainerEq(std::vector<size_t>{2, 3, 4}));
-    EXPECT_THAT(res.data(), ::testing::ElementsAre(11.990792559315636, 8.091486738522146, 9.53190323678052, 2.1307988398217077, -4.589617196051013, -0.9579305882902975, -7.682041497116099, 0.39581258899520755, 1.8181667558884573, -5.14385370704098, -7.501938758759923, -10.402147878790881, -0.720726457280275, 13.963508954919828, 9.056268558858902, 12.593383748174489, 3.891229863946453, -0.24362636412316974, -2.4868086647104635, 1.9687920972232504, -6.3373638358834015, -0.8798671485846032, 5.867537990445189, -2.3445885664647577));
+    size_t i = 0;
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
+        EXPECT_NEAR(expected[i++], val, kAbsTol);
+    });
 }
 
 TEST(Tensor, TensorAddBroadcast_Case5) {
@@ -124,8 +149,13 @@ TEST(Tensor, TensorAddBroadcast_Case5) {
 
     Tensor res = t1 + t2;
 
+    vector<double> expected{5.43348032281496, -3.77740657946244, 6.896627198661108, -2.314259703616292, -0.8078641171511602, -0.2937720282655203, 0.6552827586949874, 1.1693748475806274};
+
     EXPECT_THAT(res.shape(), ::testing::ContainerEq(std::vector<size_t>{2, 2, 2}));
-    EXPECT_THAT(res.data(), ::testing::ElementsAre(5.43348032281496, -3.77740657946244, 6.896627198661108, -2.314259703616292, -0.8078641171511602, -0.2937720282655203, 0.6552827586949874, 1.1693748475806274));
+    size_t i = 0;
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
+        EXPECT_NEAR(expected[i++], val, kAbsTol);
+    });
 }
 
 TEST(Tensor, TensorAddBroadcast_Case6) {
@@ -135,8 +165,13 @@ TEST(Tensor, TensorAddBroadcast_Case6) {
 
     Tensor res = t1 + t2;
 
+    vector<double> expected{-7.541860364559245, 0.3588277135954421, 8.766396843482877, -1.7712070793927177, 10.108157065004438, 1.1140813225191568, -6.70900047082973, 9.956935141330867, -2.843338901068379, -5.112167842652887, -4.8432616216046105, 3.9249404592631905, 5.227641448837765, 10.388530300117619, 3.082492142880298, 10.019066962160949, -3.832286169618839, -5.785225843285177, 6.786250307734152, 8.409103097259024, 9.572211734030379, -8.170864720018134, 9.951227431482476, 3.677771697166932};
+
     EXPECT_THAT(res.shape(), ::testing::ContainerEq(std::vector<size_t>{3, 2, 4}));
-    EXPECT_THAT(res.data(), ::testing::ElementsAre(-7.541860364559245, 0.3588277135954421, 8.766396843482877, -1.7712070793927177, 10.108157065004438, 1.1140813225191568, -6.70900047082973, 9.956935141330867, -2.843338901068379, -5.112167842652887, -4.8432616216046105, 3.9249404592631905, 5.227641448837765, 10.388530300117619, 3.082492142880298, 10.019066962160949, -3.832286169618839, -5.785225843285177, 6.786250307734152, 8.409103097259024, 9.572211734030379, -8.170864720018134, 9.951227431482476, 3.677771697166932));
+    size_t i = 0;
+    std::for_each(res.cbegin(), res.cend(), [&i, &expected](double val) {
+        EXPECT_NEAR(expected[i++], val, kAbsTol);
+    });
 }
 
 ////////////////

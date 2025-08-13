@@ -1,14 +1,13 @@
 #include "../test.h"
-#include <algorithm>
-#include <string>
-
 
 TEST(Tensor, CostructorInitializesDataVectorCorrectly) {
-    Tensor t{{5, 4}, 2.0};
-    auto data = t.data();
+    Tensor const t{{5, 4}, 2.0};
 
-    EXPECT_EQ(20, data.size());
-    EXPECT_THAT(data, ::testing::ContainerEq(vector<double>(20, 2.0)));
+    EXPECT_EQ(20, t.size());
+
+    std::for_each(t.cbegin(), t.cend(), [](double val) {
+        EXPECT_EQ(2.0, val);
+    });
 }
 
 TEST(Tensor, TensorThrowErrorIndexOutOfBoundsFirstDimension) {
@@ -18,7 +17,7 @@ TEST(Tensor, TensorThrowErrorIndexOutOfBoundsFirstDimension) {
         auto a = t[6];
         FAIL();
     }
-    catch (runtime_error const &err)
+    catch (invalid_argument const &err)
     {
         EXPECT_THAT(err.what(), ::testing::StartsWith("Index out of bounds on dimension 0"));
     }
@@ -38,7 +37,7 @@ TEST(Tensor, TensorIndex) {
 
     double expected[2] = {5.0, 6.0};
     size_t i = 0;
-    for_each(t2.begin(), t2.end(), [&expected, &i](double val){
+    for_each(t2.cbegin(), t2.cend(), [&expected, &i](double val){
         EXPECT_EQ(expected[i++], val);
     });
 }

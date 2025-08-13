@@ -11,7 +11,7 @@
 
 using namespace std;
 
-vector<size_t> calculate_strides(vector<size_t> const &shape);
+vector<size_t> calculate_strides(vector<size_t> const &shape, size_t start_ix = 0);
 
 autodiff::Tensor operation(autodiff::Tensor const &a,
                            autodiff::Tensor const &b,

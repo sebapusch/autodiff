@@ -5,8 +5,8 @@ namespace autodiff
     namespace
     {
         Tensor operation(Tensor const &lhs,
-                            Tensor const &rhs,
-                            function<double(double, double)> operator_)
+                        Tensor const &rhs,
+                        function<double(double, double)> operator_)
         {
             BroadcastPlan plan = prepare_broadcast(lhs, rhs);
 
@@ -16,8 +16,8 @@ namespace autodiff
 
             auto &res_shape   = plan.res_shape;
 
-            auto const &lhs_data = lhs.data();
-            auto const &rhs_data = rhs.data();
+            auto const &lhs_data = lhs.cbegin();
+            auto const &rhs_data = rhs.cbegin();
 
             size_t rank = res_shape.size();
             size_t res_size = accumulate(res_shape.begin(), res_shape.end(), 1, multiplies<size_t>());
@@ -46,17 +46,9 @@ namespace autodiff
                 res[i] = operator_(lhs_data[i_lhs], rhs_data[i_rhs]);
             }
 
-            return Tensor{move(res_shape), move(res)};
+            return Tensor{std::move(res_shape), std::move(res)};
         }
     }
-
-    // Tensor numeric_operation(Tensor const &lhs,
-    //                          double rhs,
-    //                          function<double(double, double)> operator_)
-    // {
-
-
-    // }
 
     Tensor operator+(Tensor const &lhs, Tensor const &rhs)
     {
@@ -109,7 +101,7 @@ namespace autodiff
 
     Tensor &Tensor::operator+=(double num)
     {
-        for_each(d_start, d_end, [num](double &val) {
+        for_each(begin(), end(), [num](double &val) {
             val += num;
         });
 
@@ -118,7 +110,7 @@ namespace autodiff
 
     Tensor &Tensor::operator-=(double num)
     {
-        for_each(d_start, d_end, [num](double &val) {
+        for_each(begin(), end(), [num](double &val) {
             val -= num;
         });
 
@@ -127,7 +119,7 @@ namespace autodiff
 
     Tensor &Tensor::operator*=(double num)
     {
-        for_each(d_start, d_end, [num](double &val) {
+        for_each(begin(), end(), [num](double &val) {
             val *= num;
         });
 
@@ -136,7 +128,7 @@ namespace autodiff
 
     Tensor &Tensor::operator/=(double num)
     {
-        for_each(d_start, d_end, [num](double &val) {
+        for_each(begin(), end(), [num](double &val) {
             val /= num;
         });
 
