@@ -1,0 +1,10 @@
+#include "linalg.h"
+#include <functional>
+#include <numeric>
+#include <stdexcept>
+#include <iostream>
+
+using namespace std;
+
+autodiff::MatmulBroadcastPlan prepare_matmul_broadcast(autodiff::Tensor const &lhs,
+                                                 autodiff::Tensor const &rhs);
