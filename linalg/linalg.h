@@ -1,3 +1,6 @@
+#ifndef INCLUDED_LINALG
+#define INCLUDED_LINALG
+
 #include "../tensor/tensor.h"
 
 namespace autodiff
@@ -13,3 +16,5 @@ namespace autodiff
 
     Tensor matmul(const Tensor &t1, const Tensor &t2);
 }
+
+#endif
