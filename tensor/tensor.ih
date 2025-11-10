@@ -8,14 +8,12 @@
 #include <algorithm>
 #include <iterator>
 #include <iostream>
+#include <cmath>
+#include <utility>
 
 using namespace std;
 
 vector<size_t> calculate_strides(vector<size_t> const &shape, size_t start_ix = 0);
-
-autodiff::Tensor operation(autodiff::Tensor const &a,
-                           autodiff::Tensor const &b,
-                           function<double(double, double)> op);
 
 void throw_rank_mismatch_error(size_t lhs_rank, size_t rhs_rank);
 void throw_concatenation_dim_mismatch_error(size_t dim, size_t lhs_shape, size_t rhs_shape);

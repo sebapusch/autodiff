@@ -1,4 +1,6 @@
 #include "tensor.ih"
+#include "tensor.h"
+#include <stdexcept>
 
 namespace autodiff
 {
@@ -44,12 +46,22 @@ namespace autodiff
         assert(find(d_shape.begin(), d_shape.end(), 0) == d_shape.end() and "invalid dimension 0");
     }
 
+    Tensor::Tensor(vector<size_t> const &shape, double value)
+    :
+        Tensor(vector<size_t>(shape), value)
+    {}
+
     Tensor::Tensor(vector<size_t> &&shape)
     :
         Tensor(std::move(shape), 0.0)
     {}
 
-    Tensor::Tensor(std::vector<std::size_t> &&shape, std::vector<double> &&data)
+    Tensor::Tensor(vector<size_t> const &shape)
+    :
+        Tensor(vector<size_t>(shape))
+    {}
+
+    Tensor::Tensor(vector<size_t> &&shape, vector<double> &&data)
     :
         d_data(DataPtr(new vector<double>(std::move(data)))),
         d_strides(calculate_strides(shape)),
@@ -62,30 +74,87 @@ namespace autodiff
             "invalid shape");
     }
 
-    Tensor::Tensor(Tensor const &t, size_t idx)
+    Tensor::Tensor(vector<size_t> const &shape, vector<double> &&data)
     :
-        d_data(DataPtr(t.d_data)),
-        d_strides(calculate_strides(t.d_shape, 1)),
-        d_shape(vector<size_t>(t.d_shape.begin() + 1, t.d_shape.end())),
-        d_offset(t.d_offset + t.d_strides[0] * idx),
-        d_length(t.d_length / t.d_shape[0])
-    {
-        assert(t.rank() != 1 and "cannot index one-dimensional tensor");
-    }
+        Tensor(vector<size_t>(shape), std::move(data))
+    {}
+
+    Tensor::Tensor(
+        vector<size_t> &&shape,
+        vector<size_t> &&strides,
+        DataPtr data,
+        size_t offset,
+        size_t length)
+    :
+        d_data(data),
+        d_strides(strides),
+        d_shape(shape),
+        d_offset(offset),
+        d_length(length)
+    {}
 
     Tensor::~Tensor()
     {}
 
-
-    Tensor Tensor::operator[](size_t idx)
+    Tensor Tensor::operator[](size_t idx) &
     {
-        if (rank() == 1)
-            throw runtime_error("cannot index one dimensional array");
+        assert(rank() > 0 and "cannot index tensor of rank 0 (scalar)");
 
         if (idx >= d_shape[0])
             throw_out_of_bound_error(0, d_shape[0] - 1, idx);
 
-        return Tensor{*this, idx};
+        return Tensor{
+            vector<size_t>(d_shape.begin() + 1, d_shape.end()),
+            vector<size_t>(d_strides.begin() + 1, d_strides.end()),
+            d_data,
+            d_offset + d_strides[0] * idx,
+            d_length / d_shape[0]
+        };
+    }
+
+    Tensor Tensor::operator[](size_t idx) &&
+    {
+        return (*this)[idx];
+    }
+
+    Tensor &Tensor::operator=(double val)
+    {
+        for_each(begin(), end(), [val](double &old) {
+            old = val;
+        });
+
+        return *this;
+    }
+
+    // @todo maybe try to remove duplicate
+    Tensor &Tensor::operator=(Tensor &t) &&
+    {
+        if (rank() != t.rank())
+            throw invalid_argument("rank must match");
+
+        size_t ix = 0;
+        for_each(d_shape.begin(), d_shape.end(), [&ix, &t](size_t dim) {
+            if (t.d_shape[ix++] != dim) throw invalid_argument("incompatible shape");
+        });
+
+        copy(t.cbegin(), t.cend(), begin());
+
+        return *this;
+    }
+
+    Tensor &Tensor::operator=(Tensor &&t) &&
+    {
+        if (rank() != t.rank())
+            throw invalid_argument("rank must match");
+
+        size_t ix = 0;
+        for_each(d_shape.begin(), d_shape.end(), [&ix, &t](size_t dim) {
+            if (t.d_shape[ix++] != dim) throw invalid_argument("incompatible shape");
+        });
+
+        copy(t.cbegin(), t.cend(), begin());
+
+        return *this;
     }
 
     vector<size_t> const &Tensor::shape() const
@@ -108,6 +177,18 @@ namespace autodiff
         return d_length;
     }
 
+    double &Tensor::scalar()
+    {
+        assert(rank() == 0 and "only tensors of rank 0 (scalar) can be converted to scalar");
+        return *begin();
+    }
+
+    double Tensor::scalar() const
+    {
+        assert(rank() == 0 and "only tensors of rank 0 (scalar) can be converted to scalar");
+        return *cbegin();
+    }
+
     Tensor::DataConstIter Tensor::cbegin() const
     {
         return d_data->cbegin() + d_offset;
@@ -126,6 +207,57 @@ namespace autodiff
     Tensor::DataIter Tensor::end()
     {
         return d_data->begin() + d_offset + d_length;
+    }
+
+    void swap(Tensor& a, Tensor& b) noexcept
+    {
+        std::swap(a.d_data,    b.d_data);
+        std::swap(a.d_shape,   b.d_shape);
+        std::swap(a.d_strides, b.d_strides);
+        std::swap(a.d_offset,  b.d_offset);
+        std::swap(a.d_length,  b.d_length);
+    }
+
+    Tensor operation(Tensor const &lhs, Tensor const &rhs, function<double(double, double)> operator_)
+    {
+        BroadcastPlan plan = prepare_broadcast(lhs, rhs);
+
+        auto const &lhs_strides = plan.lhs_strides;
+        auto const &rhs_strides = plan.rhs_strides;
+        auto const &res_strides = plan.res_strides;
+
+        auto &res_shape   = plan.res_shape;
+
+        auto const &lhs_data = lhs.cbegin();
+        auto const &rhs_data = rhs.cbegin();
+
+        size_t rank = res_shape.size();
+        size_t res_size = accumulate(res_shape.begin(), res_shape.end(), 1, multiplies<size_t>());
+
+        vector<double> res(res_size);
+
+        size_t i_lhs = 0;
+        size_t i_rhs = 0;
+
+        for (size_t i = 0; i < res_size; ++i)
+        {
+            i_lhs = 0;
+            i_rhs = 0;
+
+            size_t j = i;
+            for (size_t axis = 0; axis < rank; ++axis)
+            {
+                size_t coord = j / res_strides[axis];
+                j = j % res_strides[axis];
+
+                i_lhs += coord * lhs_strides[axis];
+                i_rhs += coord * rhs_strides[axis];
+            }
+
+            res[i] = operator_(lhs_data[i_lhs], rhs_data[i_rhs]);
+        }
+
+        return Tensor{std::move(res_shape), std::move(res)};
     }
 
     ostream &operator<<(ostream &out, Tensor const &t)

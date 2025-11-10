@@ -4,50 +4,7 @@ namespace autodiff
 {
     namespace
     {
-        Tensor operation(Tensor const &lhs,
-                        Tensor const &rhs,
-                        function<double(double, double)> operator_)
-        {
-            BroadcastPlan plan = prepare_broadcast(lhs, rhs);
 
-            auto const &lhs_strides = plan.lhs_strides;
-            auto const &rhs_strides = plan.rhs_strides;
-            auto const &res_strides = plan.res_strides;
-
-            auto &res_shape   = plan.res_shape;
-
-            auto const &lhs_data = lhs.cbegin();
-            auto const &rhs_data = rhs.cbegin();
-
-            size_t rank = res_shape.size();
-            size_t res_size = accumulate(res_shape.begin(), res_shape.end(), 1, multiplies<size_t>());
-
-            vector<double> res(res_size);
-
-            size_t i_lhs = 0;
-            size_t i_rhs = 0;
-
-            // @todo: potential opimization: use odometer increment
-            for (size_t i = 0; i < res_size; ++i)
-            {
-                i_lhs = 0;
-                i_rhs = 0;
-
-                size_t j = i;
-                for (size_t axis = 0; axis < rank; ++axis)
-                {
-                    size_t coord = j / res_strides[axis];
-                    j = j % res_strides[axis];
-
-                    i_lhs += coord * lhs_strides[axis];
-                    i_rhs += coord * rhs_strides[axis];
-                }
-
-                res[i] = operator_(lhs_data[i_lhs], rhs_data[i_rhs]);
-            }
-
-            return Tensor{std::move(res_shape), std::move(res)};
-        }
     }
 
     Tensor operator+(Tensor const &lhs, Tensor const &rhs)
@@ -133,6 +90,31 @@ namespace autodiff
         });
 
         return *this;
+    }
+
+    Tensor operator*(Tensor const &t, double num)
+    {
+        vector<double> res(t.size());
+        size_t ix = 0;
+        for_each(t.cbegin(), t.cend(), [&ix, &res, num](double val) {
+            res[ix++] = val * num;
+        });
+
+        return Tensor{t.shape(), std::move(res)};
+    }
+
+    Tensor &Tensor::power(double num)
+    {
+        for_each(begin(), end(), [num](double &val) {
+            val = std::pow(val, num);
+        });
+
+        return *this;
+    }
+
+    double Tensor::sum() const
+    {
+        return accumulate(cbegin(), cend(), 0, plus<double>());
     }
 
     BroadcastPlan prepare_broadcast(const Tensor& lhs, const Tensor& rhs)

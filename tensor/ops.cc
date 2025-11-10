@@ -21,6 +21,13 @@ namespace autodiff
         }
     }
 
+    Tensor maximum(Tensor const &lhs, Tensor const &rhs)
+    {
+        return operation(lhs, rhs, [](double a, double b){
+            return a > b ? a : b;
+        });
+    }
+
     Tensor concatenate(Tensor const &lhs, Tensor const &rhs, optional<size_t> axis)
     {
         if (lhs.rank() != rhs.rank())
