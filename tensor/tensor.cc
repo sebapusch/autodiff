@@ -34,10 +34,10 @@ namespace autodiff
 
     Tensor::Tensor(vector<size_t> &&shape, double value)
     :
-        d_data(DataPtr(new vector<double>(
+        d_data(make_shared<vector<double>>(
             accumulate(shape.begin(), shape.end(), 1, multiplies<size_t>()),
             value
-        ))),
+        )),
         d_strides(calculate_strides(shape)),
         d_shape(std::move(shape)),
         d_length(d_data->size())
@@ -63,7 +63,7 @@ namespace autodiff
 
     Tensor::Tensor(vector<size_t> &&shape, vector<double> &&data)
     :
-        d_data(DataPtr(new vector<double>(std::move(data)))),
+        d_data(make_shared<vector<double>>(std::move(data))),
         d_strides(calculate_strides(shape)),
         d_shape(std::move(shape)),
         d_length(d_data->size())
