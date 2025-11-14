@@ -1,0 +1,5 @@
+#include "variable.h"
+#include "../operator/operator.h"
+
+using namespace std;
+using namespace autodiff;

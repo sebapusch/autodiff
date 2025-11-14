@@ -19,7 +19,7 @@ TEST_TARGET := $(BUILD_DIR)/test
 MAIN_SRC := main.cc
 
 # Shared library sources (code used by both main and test targets)
-SHARED_SRCS := $(wildcard tensor/*.cc linalg/*.cc)
+SHARED_SRCS := $(wildcard tensor/*.cc linalg/*.cc variable/*.cc operator/*.cc)
 
 # Test-specific sources
 TEST_SRCS := tests/test.cc tests/tensor/test_tensor.cc tests/arithmetic/test_arithmetic.cc tests/linalg/test_linalg.cc

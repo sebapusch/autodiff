@@ -1,30 +1,19 @@
+#include "variable/variable.h"
 #include "tensor/tensor.h"
-#include "linalg/linalg.h"
 #include <iostream>
+#include <print>
 
 using namespace autodiff;
 using namespace std;
 
 int main()
 {
-    Tensor a{{3, 2, 3}, {
-        0, 1, 2,
-        3, 4, 5,
+    auto a = Variable(Tensor({1},{5}));
+    auto b = Variable(Tensor({1},{7}));
 
-        6, 7, 8,
-        9, 10, 11,
+    auto c = a + b;
 
-        12, 13, 14,
-        15, 16, 17
-    }};
+    cout << c.data();
 
-    cout << a;
-
-    cout << "\n";
-
-    Tensor b = a[2];
-
-    Tensor c = b[1];
-
-    cout << b << "\n" << c << "\n";
+//    println("{}", c.data()); @todo make this shit work
 }

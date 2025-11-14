@@ -25,6 +25,7 @@ namespace autodiff
     public:
         Tensor(Tensor const &t) = default;
 
+        Tensor(double value);                   // array value (empty shape)
         Tensor(std::vector<size_t> &&shape);
         Tensor(std::vector<size_t> const &shape);
         Tensor(std::vector<size_t> &&shape, double value);
