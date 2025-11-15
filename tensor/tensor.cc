@@ -1,6 +1,5 @@
 #include "tensor.ih"
 #include "tensor.h"
-#include <stdexcept>
 
 namespace autodiff
 {
