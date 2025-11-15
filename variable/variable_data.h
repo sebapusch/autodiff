@@ -23,8 +23,8 @@ namespace autodiff
         std::shared_ptr<Operator>   d_op = nullptr;
 
         public:
-//            VariableData(double val);
-//            VariableData(double val, Operator &&op);
+            VariableData(double val);
+            VariableData(double val, std::shared_ptr<Operator> op);
 
             VariableData(Tensor &&data);
             VariableData(Tensor &&data, std::shared_ptr<Operator> op);

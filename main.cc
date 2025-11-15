@@ -8,12 +8,19 @@ using namespace std;
 
 int main()
 {
-    auto a = Variable(Tensor({1},{5}));
-    auto b = Variable(Tensor({1},{7}));
+    Variable a(8);
+    Variable b(19);
 
-    auto c = a + b;
+    auto c = a * b;
 
-    cout << c.data();
+    cout << "a = " << a.data().scalar() 
+         << "\nb = " << b.data().scalar() 
+         << "\nc = a * b = " << c.data().scalar() << "\n";
 
-//    println("{}", c.data()); @todo make this shit work
+    c.backward();
+
+    if (auto grad = a.grad())
+        cout << "grad a = " << grad.value().scalar() << "\n";
+    else
+        cout << "no grad\n";
 }

@@ -17,17 +17,27 @@ namespace autodiff
             Operator();
 
             Tensor operator()(std::initializer_list<Variable> inputs);
+            
+            void backward(Tensor const &incoming_grad);
 
         protected:
-            virtual Tensor forward() = 0;
+            virtual Tensor  compute_forward() = 0;
+            virtual void    compute_backward(Tensor const &incoming_grad) = 0;
     };
 
-    class Sum : public Operator
+    class Add : public Operator
     {
         protected:
-            Tensor forward() override;
+            Tensor  compute_forward() override;
+            void    compute_backward(Tensor const &incoming_grad) override;
     };
 
+    class Multiply : public Operator
+    {
+        protected:
+            Tensor  compute_forward() override;
+            void    compute_backward(Tensor const &incoming_grad) override;
+    };
 }
 
 #endif

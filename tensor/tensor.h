@@ -50,6 +50,7 @@ namespace autodiff
         size_t rank() const;
         size_t size() const;
 
+        bool   is_scalar() const;
         double scalar() const;
         double &scalar();
 

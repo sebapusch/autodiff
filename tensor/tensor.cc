@@ -32,6 +32,14 @@ namespace autodiff
         }
     }
 
+    Tensor::Tensor(double value)
+    :
+        d_data(make_shared<vector<double>>(1, value)),
+        d_strides({1}),
+        d_shape({1}),
+        d_length(1)
+    {}
+
     Tensor::Tensor(vector<size_t> &&shape, double value)
     :
         d_data(make_shared<vector<double>>(
@@ -177,15 +185,20 @@ namespace autodiff
         return d_length;
     }
 
+    bool Tensor::is_scalar() const
+    {
+        return rank() == 1 and d_shape[0] == 1;
+    }
+
     double &Tensor::scalar()
     {
-        assert(rank() == 0 and "only tensors of rank 0 (scalar) can be converted to scalar");
+        assert(is_scalar() and "only tensors of rank 0 (scalar) can be converted to scalar");
         return *begin();
     }
 
     double Tensor::scalar() const
     {
-        assert(rank() == 0 and "only tensors of rank 0 (scalar) can be converted to scalar");
+        assert(is_scalar() and "only tensors of rank 0 (scalar) can be converted to scalar");
         return *cbegin();
     }
 

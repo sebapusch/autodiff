@@ -16,11 +16,11 @@ namespace autodiff
         d_op = std::move(op);
     }
 
-//    VariableData::VariableData(double val)
-//    : VariableData(Tensor(val))
-//    {}
-//    
-//    VariableData::VariableData(double val, Operator &&op)
-//    : VariableData(Tensor(val), move(op))
-//    {}
+    VariableData::VariableData(double val)
+    : VariableData(Tensor(val))
+    {}
+    
+    VariableData::VariableData(double val, shared_ptr<Operator> op)
+    : VariableData(Tensor(val), op)
+    {}
 }
